@@ -18,7 +18,7 @@ async function routes(request, response) {
     }
 
     if (method === 'GET' && url === '/home') {
-        
+
         const { stream } = await controller.getFileStream(config.pages.homeHTML)
         //pardrão do response é text/html
         // response.writeHead(200,{
@@ -27,7 +27,23 @@ async function routes(request, response) {
         return stream.pipe(response)
     }
 
-    return response.end('hello!')
+    if (method === 'GET' && url === '/controller') {
+
+        const { stream } = await controller.getFileStream(config.pages.controllerHTML)
+
+        return stream.pipe(response)
+    }
+
+    //files
+    if (method === 'GET') {
+        const { stream, type } = await controller.getFileStream(url)
+
+        return stream.pipe(response);
+
+    }
+
+    response.writeHead(404);
+    return response.end();
 }
 
 export function handler(request, response) {

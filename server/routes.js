@@ -4,6 +4,11 @@ import { logger } from "./util.js";
 
 const controller = new Controller();
 
+const {
+    constants: {
+        CONTENT_TYPE
+    }
+} = config
 
 async function routes(request, response) {
 
@@ -37,7 +42,12 @@ async function routes(request, response) {
     //files
     if (method === 'GET') {
         const { stream, type } = await controller.getFileStream(url)
-
+        const contentType = CONTENT_TYPE[type];
+        if (contentType) {
+            response.writeHead(200, {
+                'Content-Type': contentType
+            })
+        }
         return stream.pipe(response);
 
     }
@@ -60,5 +70,5 @@ function handleErro(error, response) {
 
 export function handler(request, response) {
     return routes(request, response)
-        .catch(error => handleErro(error,response));
+        .catch(error => handleErro(error, response));
 }

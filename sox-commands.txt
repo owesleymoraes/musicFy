@@ -1,0 +1,38 @@
+sox \
+ --i \
+ "audio/songs/conversation.mp3"
+
+ sox \
+    --i \
+    "audio/fx/Boo! Sound Effect (128 kbps).mp3"
+
+
+
+
+
+// manipulando meus audios:
+// 1° -v = volume
+// 2° -t = tipo
+// 3° o local do audio e o audio a ser tratado
+// 4° -r = Sample Rate (padrão 4.8 hz)
+// 5° -t = saída do arquivo
+// 6° nome do arquivo
+
+ sox \
+    -v 0.99 \
+    -t mp3 \
+    "audio/fx/Applause Sound Effect HD No Copyright (128 kbps).mp3" \
+    -r 48000 \
+    -t mp3 \
+    "output.mp3"
+
+    // obter o bitrate
+
+ sox \
+    --i \
+    -B \
+    "audio/fx/Boo! Sound Effect (128 kbps).mp3"
+
+
+
+

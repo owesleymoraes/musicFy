@@ -1,6 +1,10 @@
-import { Controller } from "./controller.js";
+import {
+    Controller
+} from "./controller.js";
 import config from "./config.js";
-import { logger } from "./util.js";
+import {
+    logger
+} from "./util.js";
 
 const controller = new Controller();
 
@@ -12,7 +16,10 @@ const {
 
 async function routes(request, response) {
 
-    const { method, url } = request
+    const {
+        method,
+        url
+    } = request
 
     if (method === 'GET' && url === '/') {
         response.writeHead(302, {
@@ -24,7 +31,9 @@ async function routes(request, response) {
 
     if (method === 'GET' && url === '/home') {
 
-        const { stream } = await controller.getFileStream(config.pages.homeHTML)
+        const {
+            stream
+        } = await controller.getFileStream(config.pages.homeHTML)
         //pardrão do response é text/html
         // response.writeHead(200,{
         // 'Content-Type' : 'text/html'
@@ -34,14 +43,36 @@ async function routes(request, response) {
 
     if (method === 'GET' && url === '/controller') {
 
-        const { stream } = await controller.getFileStream(config.pages.controllerHTML)
+        const {
+            stream
+        } = await controller.getFileStream(config.pages.controllerHTML)
 
         return stream.pipe(response)
     }
 
+    if (method === 'GET' && url.includes('/stream')) {
+
+        const {
+            stream,
+            onClose
+        } = controller.createClientStream();
+
+        request.once("close", onClose);
+        response.writeHead(200, {
+            'Content-Type': 'audio/mpeg',
+            'Accept-Rages': 'bytes'
+        })
+
+        return stream.pipe(response);
+
+    }
+
     //files
     if (method === 'GET') {
-        const { stream, type } = await controller.getFileStream(url)
+        const {
+            stream,
+            type
+        } = await controller.getFileStream(url)
         const contentType = CONTENT_TYPE[type];
         if (contentType) {
             response.writeHead(200, {

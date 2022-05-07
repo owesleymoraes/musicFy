@@ -34,5 +34,22 @@ sox \
     "audio/fx/Boo! Sound Effect (128 kbps).mp3"
 
 
+    // concatenar dois audios.
+   // -m = mergiar
+
+   sox \
+      -t mp3 \
+      -v 0.99 \
+      -m "audio/songs/conversation.mp3" \
+       -t mp3 \
+      -v 0.99 \
+      -m "audio/fx/Fart - Gaming Sound Effect (HD) (128 kbps).mp3" \
+      -t mp3 \
+      "output.mp3"
+
+
+
+
+
 
 

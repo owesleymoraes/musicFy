@@ -1,11 +1,11 @@
-version: '2.1'
-services: 
-  live-reload: 
+version: "2.1"
+services:
+  live-reload:
     image: spotify-radio
     build: .
     environment:
       PORT: 3000
-    command: 
+    command:
       - npm
       - run
       - live-reload
@@ -17,4 +17,4 @@ services:
       - 3000:3000
 
 volumes:
-   node_modules: {}
+  node_modules: {}

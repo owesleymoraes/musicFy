@@ -1,22 +1,15 @@
 import fs from 'fs';
-import Throttle from 'throttle';
-import {
-    logger
-} from './util.js';
-import ChildProcess from 'child_process';
-import {
-    randomUUID
-} from 'crypto';
-import {
-    PassThrough
-} from 'stream';
-import {
-    join,
-    extname
-} from 'path';
+import Throttle from 'throttle'
+import { logger } from './util.js';
+import childProcess from 'child_process';
+import { randomUUID } from 'crypto';
+import { PassThrough, Writable } from 'stream';
+import { once } from 'events';
+import streamsPromises from 'stream/promises';
+import { join, extname } from 'path';
 import config from './config.js';
 import fsPromises from 'fs/promises'
-import Throttle from 'throttle';
+
 
 
 const {
@@ -39,6 +32,8 @@ export class Service {
         this.currentBitRate = 0;
         this.throttleTransfor = {};
         this.currentReadable = {}
+
+        this.startStream()
     }
 
     createClientStream() {
@@ -56,16 +51,15 @@ export class Service {
         this.clientStreams.delete(id);
     }
 
-    _executeSoxcommand(args) {
-        ChildProcess.spawn('sox', args)
+    _executeSoxCommand(args) {
+        return childProcess.spawn('sox', args)
     }
 
     async getBitRate(song) {
         try {
-
             const args = [
-                --i, // info
-                -B, // bitrate
+                '--i', // info
+                '-B', // bitrate
                 song
             ]
             const {
@@ -73,7 +67,12 @@ export class Service {
                 stdout, // tudo que é log
                 //stdin // enviar dados como stream
 
-            } = this._executeSoxcommand(args);
+            } = this._executeSoxCommand(args)
+
+            await Promise.all([
+                once(stderr,'readable'),
+                once(stdout,'readable')
+            ])
 
             const [sucess, error] = [stdout, stderr].map(stream => stream.read());
             if (error) {
@@ -81,7 +80,7 @@ export class Service {
             }
 
 
-            return sucess.toString().trim().replace(/k/, 000)
+            return sucess.toString().trim().replace(/k/, '000')
 
 
         } catch (error) {
@@ -91,11 +90,36 @@ export class Service {
 
     }
 
+    broadCast() {
+        return new Writable({
+            write: (chuck, enc, cb) => {
+
+                for (const [id, stream] of this.clientStreams) {
+                    // se o cliente descontou não devemos mandar dados para o cliente.
+                    if (stream.writableEnded) {
+                        this.clientStreams.delete(id)
+                        continue;
+
+                    }
+                    stream.write(chuck);
+                }
+
+                cb();
+            }
+        })
+    }
+
     async startStream() {
         logger.info(`starting with ${this.currentSong}`);
         const bitRate = this.currentBitRate = (await this.getBitRate(this.currentSong)) / bitRateDivisor
         const throttleTransfor = this.throttleTransfor = new Throttle(bitRate);
         const songReadable = this.currentReadable = this.createFileStream(this.currentSong);
+        return streamsPromises.pipeline(
+            songReadable,
+            throttleTransfor,
+            this.broadCast()
+
+        )
     }
 
     createFileStream(filename) {

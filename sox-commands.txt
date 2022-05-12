@@ -8,8 +8,6 @@ sox \
 
 
 
-
-
 // manipulando meus audios:
 // 1° -v = volume
 // 2° -t = tipo
